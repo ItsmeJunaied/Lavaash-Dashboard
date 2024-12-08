@@ -103,10 +103,11 @@ const ECommerce = () => {
         <ChartTwo />
         <ChartThree />
         <MapOne />
-        <div className="col-span-12 xl:col-span-8">
+        <div className="col-span-12 xl:col-span-12">
           <TableOne />
         </div>
-        <ChatCard />
+
+        {/* <ChatCard /> */}
       </div>
     </>
   );

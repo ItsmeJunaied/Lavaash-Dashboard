@@ -1,50 +1,29 @@
 
 import Image from "next/image";
+import { useState } from "react";
+import { useCurrentUser } from "../../hooks/currentUserApi";
 
-const brandData = [
-  {
-    logo: "/images/user/user-01.png",
-    name: "Sayed Redwan",
-    visitors: 'sayed@gmail.com',
-    revenues: 19750543546,
-    sales: 'Gold',
-    conversion: '02-06-2024',
-  },
-  {
-    logo: "/images/user/user-01.png",
-    name: "Rumman Haydar",
-    visitors: 'rumman@gmail.com',
-    revenues: 19750543546,
-    sales: 'Platinum',
-    conversion: '02-06-2024',
-  },
-  {
-    logo: "/images/user/user-01.png",
-    name: 'Jeni Sayra',
-    visitors: 'jeni@gmail.com',
-    revenues: 19750543546,
-    sales: 'Ace',
-    conversion: '02-06-2024',
-  },
-  {
-    logo: "/images/user/user-01.png",
-    name: 'Fardin Ahsan',
-    visitors: 'fardin@gmail.com',
-    revenues: 19750543546,
-    sales: 'Gold',
-    conversion: '02-06-2024',
-  },
-  {
-    logo: "/images/user/user-01.png",
-    name: "Rafid Ahnaf",
-    visitors: 'sadib@gmail.com',
-    revenues: 19750543546,
-    sales: 'Platinum',
-    conversion: '02-06-2024',
-  },
-];
+
 
 const TableOne = () => {
+  const [email, setEmail] = useState("");
+  const [teamName, setTeamName] = useState("");
+  const [planName, setPlanName] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);  // For pagination
+  const [itemsPerPage] = useState(10);  // Items per page
+
+  // Fetch user data using the custom hook
+  const { data, error, isLoading, isError } = useCurrentUser(email, teamName, planName);
+
+  if (isLoading) return <p>Loading...</p>;
+  if (isError) return <p>Error: {error.message}</p>;
+
+  // Ensure `data.users` is an array before using .slice
+  const currentItems = Array.isArray(data?.users) ? data.users.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage) : [];
+
+  // Handle pagination
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
   return (
     <div className="rounded-sm border border-stroke bg-white px-5 pb-2.5 pt-6 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
       <h4 className="mb-6 text-xl font-semibold text-black dark:text-white">
@@ -52,10 +31,10 @@ const TableOne = () => {
       </h4>
 
       <div className="flex flex-col">
-        <div className="grid grid-cols-3 rounded-sm bg-gray-2 dark:bg-meta-4 sm:grid-cols-5">
+        <div className="grid grid-cols-4 rounded-sm bg-gray-2 dark:bg-meta-4 sm:grid-cols-4">
           <div className="p-2.5 xl:p-5">
             <h5 className="text-sm font-medium uppercase xsm:text-base">
-              Image
+              Name
             </h5>
           </div>
           <div className="p-2.5 text-center xl:p-5">
@@ -65,55 +44,61 @@ const TableOne = () => {
           </div>
           <div className="p-2.5 text-center xl:p-5">
             <h5 className="text-sm font-medium uppercase xsm:text-base">
-              Phone
+              Team Name
             </h5>
           </div>
-          <div className="hidden p-2.5 text-center sm:block xl:p-5">
+          <div className="p-2.5 text-center xl:p-5">
             <h5 className="text-sm font-medium uppercase xsm:text-base">
-              Membership Type
-            </h5>
-          </div>
-          <div className="hidden p-2.5 text-center sm:block xl:p-5">
-            <h5 className="text-sm font-medium uppercase xsm:text-base">
-              Date
+              Total API Calls
             </h5>
           </div>
         </div>
 
-        {brandData.map((brand, key) => (
+        {/* Render current page items */}
+        {currentItems?.map((user, key) => (
           <div
-            className={`grid grid-cols-3 sm:grid-cols-5 ${key === brandData.length - 1
-              ? ""
-              : "border-b border-stroke dark:border-strokedark"
-              }`}
-            key={key}
+            className={`grid grid-cols-4 ${key === currentItems.length - 1 ? "" : "border-b border-stroke dark:border-strokedark"}`}
+            key={user._id}
           >
             <div className="flex items-center gap-3 p-2.5 xl:p-5">
-              <div className="flex-shrink-0">
-                <Image src={brand.logo} alt="Brand" width={48} height={48} />
-              </div>
-              <p className="hidden text-black dark:text-white sm:block">
-                {brand.name}
+              <p className="text-black dark:text-white">{user.name}</p>
+            </div>
+
+            <div className="flex items-center justify-center p-2.5 xl:p-5">
+              <p className="text-black dark:text-white">{user.email}</p>
+            </div>
+
+            <div className="flex items-center justify-center p-2.5 xl:p-5">
+              <p className="text-black dark:text-white">
+                {user.teams?.[0]?.teamName || "No team"}
               </p>
             </div>
 
             <div className="flex items-center justify-center p-2.5 xl:p-5">
-              <p className="text-black dark:text-white">{brand.visitors}K</p>
-            </div>
-
-            <div className="flex items-center justify-center p-2.5 xl:p-5">
-              <p className="text-meta-3">+880{brand.revenues}</p>
-            </div>
-
-            <div className="hidden items-center justify-center p-2.5 sm:flex xl:p-5">
-              <p className="text-black dark:text-white">{brand.sales}</p>
-            </div>
-
-            <div className="hidden items-center justify-center p-2.5 sm:flex xl:p-5">
-              <p className="text-meta-5">{brand.conversion}</p>
+              <p className="text-black dark:text-white">
+                {user.teams?.[0]?.totalApicall || 0}
+              </p>
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Pagination Controls */}
+      <div className="flex justify-center mt-4">
+        <button
+          className="px-4 py-2 mx-1 bg-gray-300 rounded-md"
+          onClick={() => paginate(currentPage - 1)}
+          disabled={currentPage === 1}
+        >
+          Previous
+        </button>
+        <button
+          className="px-4 py-2 mx-1 bg-gray-300 rounded-md"
+          onClick={() => paginate(currentPage + 1)}
+          disabled={currentItems.length < itemsPerPage}
+        >
+          Next
+        </button>
       </div>
     </div>
   );
